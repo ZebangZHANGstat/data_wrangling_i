@@ -8,8 +8,11 @@ library(tidyverse)
 ```
 
 ```{r}
-litters_df=read.csv('data_import_examples/FAS_litters.csv')
+litters_df=read_csv('data_import_examples/FAS_litters.csv')
 names(litters_df)
+```
+
+```{r}
 litters_df = janitor::clean_names(litters_df)
 names(litters_df)
 ```
@@ -23,37 +26,72 @@ head(litters_df)
 tail(litters_df, 10)
 ```
 
-```{r eval=FALSE}
+```{r}
 view(litters_df)
 skimr::skim(litters_df)
 ```
 
 ```{r}
 litters_df = 
-    read.csv(file = "data_import_examples/FAS_litters.csv",
-    skip = 10)
+    read_csv(file = "data_import_examples/FAS_litters.csv",
+    skip = 10, col_names = FALSE)
 litters_df
 ```
 
 ```{r}
 litters_df = 
-    read.csv(file = "data_import_examples/FAS_litters.csv",
+    read.csv(file = "./data_import_examples/FAS_litters.csv",
     na = c(".", "NA", ""))
 litters_df
 ```
+
 ```{r}
-litters_df=read.csv(
-  file = "data_import_examples/FAS_litters.csv",
-  na = c(".", "NA", ""),
-  col_types=cols(Group = col_character(),
-                 `Litter Number` = col_character(),
-                 `GD0 weight` = col_double(),
-                 `GD18 weight` = col_double(),
-                 `GD of Birth` = col_integer(),
-                 `Pups born alive` = col_integer()
-                 )
+litters_df = 
+    read_csv(file = "./data_import_examples/FAS_litters.csv",
+        na = c(".", "NA", ""),
+    col_types = cols(
+      Group = col_character(),
+      `Litter Number` = col_character(),
+      `GD0 weight` = col_double(),
+      `GD18 weight` = col_double(),
+      `GD of Birth` = col_integer(),
+      `Pups born alive` = col_integer(),
+      `Pups dead @ birth` = col_integer(),
+      `Pups survive` = col_integer()
+    )
   )
-      
+litters_df
+```
+
+```{r, eval=FALSE}
+litters_df = 
+    read_csv(file = 'data_import_examples/FAS_litters.csv',
+        na = c(".", "NA", ""),
+    col_types = cols(
+      Group = col_factor()
+    )
+)
+```
+
+```{r}
+pups_df = 
+    read_csv("./data_import_examples/FAS_pups.csv",
+        na = c(".", "NA"), col_types = "fddddd")
+pups_df
+
+skimr::skim(pups_df)
+```
+
+```{r}
+library(readxl)
+mlb11_df = read_excel("data_import_examples/mlb11.xlsx", n_max = 20)
+head(mlb11_df, 5)
+```
+
+```{r}
+library(haven)
+pulse_df = read_sas("./data_import_examples/public_pulse_data.sas7bdat")
+head(pulse_df, 5)
 ```
 
 This document will show how to import data.
