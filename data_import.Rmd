@@ -1,0 +1,59 @@
+---
+title: "data import"
+output: github_document
+---
+
+```{r setup, echo=FALSE, message=FALSE}
+library(tidyverse)
+```
+
+```{r}
+litters_df=read.csv('data_import_examples/FAS_litters.csv')
+names(litters_df)
+litters_df = janitor::clean_names(litters_df)
+names(litters_df)
+```
+
+## Look at the dataset
+
+```{r}
+litters_df
+
+head(litters_df)
+tail(litters_df, 10)
+```
+
+```{r eval=FALSE}
+view(litters_df)
+skimr::skim(litters_df)
+```
+
+```{r}
+litters_df = 
+    read.csv(file = "data_import_examples/FAS_litters.csv",
+    skip = 10)
+litters_df
+```
+
+```{r}
+litters_df = 
+    read.csv(file = "data_import_examples/FAS_litters.csv",
+    na = c(".", "NA", ""))
+litters_df
+```
+```{r}
+litters_df=read.csv(
+  file = "data_import_examples/FAS_litters.csv",
+  na = c(".", "NA", ""),
+  col_types=cols(Group = col_character(),
+                 `Litter Number` = col_character(),
+                 `GD0 weight` = col_double(),
+                 `GD18 weight` = col_double(),
+                 `GD of Birth` = col_integer(),
+                 `Pups born alive` = col_integer()
+                 )
+  )
+      
+```
+
+This document will show how to import data.
