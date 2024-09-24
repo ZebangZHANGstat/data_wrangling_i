@@ -1,0 +1,189 @@
+---
+title: "Tidy Data"
+output: github_document
+---
+
+This document will show how to tidy data.
+
+```{r}
+library(tidyverse)
+library(haven)
+library(readxl)
+options(tibble.print_min = 5)
+```
+
+## pivot_longer
+
+```{r}
+pulse_df = 
+  haven::read_sas("./data_import_examples/public_pulse_data.sas7bdat") |>
+  janitor::clean_names()
+
+pulse_df
+```
+
+```{r}
+pulse_tidy_df = 
+  pivot_longer(
+    pulse_df, 
+    bdi_score_bl:bdi_score_12m,
+    names_to = "visit", 
+    values_to = "bdi")
+
+pulse_tidy_df
+```
+
+
+```{r}
+pulse_tidy_df = 
+  pulse_df |>
+  pivot_longer(
+    bdi_score_bl:bdi_score_12m,
+    names_to = "visit", 
+    values_to = "bdi_score",
+    names_prefix = 'bdi_score_') |>
+  mutate(visit = replace(visit, visit == 'bl','00')) |>
+  relocate(id,visit)
+
+pulse_tidy_df
+```
+
+```{r}
+litters_df=
+  read_csv("./data_import_examples/FAS_litters.csv",
+           na=c('NA','.','')) |>
+  janitor::clean_names()
+
+litters_df
+```
+
+
+```{r}
+litters_df=
+  read_csv("./data_import_examples/FAS_litters.csv",
+           na=c('NA','.','')) |>
+  janitor::clean_names() |>
+  #select(litter_number, ends_with("weight")) |> 
+  pivot_longer(
+    cols = gd0_weight:gd18_weight,
+    names_to = 'gd_time',
+    values_to = 'weight'
+  ) |>
+  mutate(
+    gd_time = case_match(gd_time,'gd0_weight'~0,'gd18_weight'~18)
+  )
+
+litters_df
+```
+
+## pivot_wider
+
+Pivot wider for human readability
+Let's make up an analysis result table.
+
+```{r}
+analysis_df = 
+  tibble(
+    group= c('treatment','treatment','control','control'),
+    time= c('pre','post','pre','post'),
+    mean= c(4,10,4.2,5)
+  )
+
+analysis_df
+```
+
+```{r}
+analysis_df |>
+  pivot_wider(
+    names_from = time,
+    values_from = mean) # |> knitr::kable()
+
+```
+
+## Binding rows
+
+```{r}
+fellowship_ring = 
+  readxl::read_excel('data_import_examples/LotR_Words.xlsx', range = "B3:D6") |>
+  mutate(movie = "fellowship_ring")
+fellowship_ring
+
+two_towers = 
+  readxl::read_excel('data_import_examples/LotR_Words.xlsx', range = "F3:H6") |>
+  mutate(movie = "two_towers")
+two_towers
+
+return_king = 
+  readxl::read_excel('data_import_examples/LotR_Words.xlsx', range = "J3:L6") |>
+  mutate(movie = "return_king")
+return_king
+```
+
+```{r}
+lotr_tidy = 
+  bind_rows(fellowship_ring, two_towers, return_king)
+lotr_tidy
+```
+
+
+```{r}
+lotr_tidy = 
+  bind_rows(fellowship_ring, two_towers, return_king) |>
+  janitor::clean_names() |>
+  pivot_longer(
+    cols = female:male,
+    names_to = "gender", 
+    values_to = "words") |>
+  mutate(race = str_to_lower(race)) |> 
+  select(movie, everything()) #relocate(movie)
+
+lotr_tidy
+```
+
+## Join datasets
+
+Inner: keeps data that appear in both x and y  
+
+Left: keeps data that appear in x  
+
+Right: keeps data that appear in y  
+
+Full: keeps data that appear in either x or y  
+
+```{r}
+litters_df=
+  read_csv("./data_import_examples/FAS_litters.csv",
+           na=c('NA','.','')) |>
+  janitor::clean_names() |>
+  separate(
+    group, into = c('dose','day_of_treatment'), sep= 3
+  ) |>
+  mutate(wt_gain=gd18_weight - gd0_weight,
+         dose = str_to_lower(dose))
+
+litters_df
+```
+
+```{r}
+pups_df = 
+  read_csv(
+    "./data_import_examples/FAS_pups.csv",
+    na = c("NA", "", ".")) |>
+  janitor::clean_names() |>
+  mutate(
+    sex = 
+      case_match(
+        sex, 
+        1 ~ "male", 
+        2 ~ "female"))
+
+pups_df
+```
+
+```{r}
+fas_df=
+  left_join(pups_df, litters_df, by='litter_number') |>
+  relocate(litter_number,dose,day_of_treatment)
+
+fas_df
+```
